@@ -1,6 +1,6 @@
-# SHeppard
+# Sheppard
 
-## Test app for Android TV and Fire TV TAR (TruexAdRenderer) development
+## Test app for Android TV and Fire TV TAR (TruexAdRenderer) integration
 
 This is an Android TV and Fire TV application exposing direct calls into `TruexAdRenderer` instances, enabling functional testing as well as prototyping. The application is set up with a simple activity and the calls in the `MainActivity` should be self-explanatory.
 
