@@ -1,26 +1,36 @@
 package com.truex.sheppard;
 
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.truex.adrenderer.TruexAdRenderer;
-import com.truex.adrenderer.TruexAdRendererConstants;
-import com.truex.adrenderer.IEventHandler;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.BandwidthMeter;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.truex.sheppard.ads.TruexAdManager;
+import com.truex.sheppard.player.PlaybackHandler;
+import com.truex.sheppard.player.PlaybackStateListener;
+import com.truex.sheppard.player.PlayerEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Map;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PlaybackStateListener, PlaybackHandler {
 
     private static final String CLASSTAG = "Sheppard";
-    private TruexAdRenderer mAdRenderer;
-    ViewGroup mViewGroup;
+    private SimpleExoPlayerView mPlayerView;
+    private TruexAdManager mTruexAdManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,84 +43,93 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (mAdRenderer != null) {
-            return;
+        if (mPlayerView == null) {
+            setupExoPlayer();
+            setupFakeStream();
         }
-        Log.d(CLASSTAG, "onStart");
-        mViewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
-        try {
 
-            // NOTE: This creativeURL, adParameters and slotType should come from Uplynk.
-            // This is hard coded as an example only.
-            String creativeURL = "https://media.truex.com/container/2.0/fw_renderers/choicecard-foxnow.js";
-            JSONObject adParams = new JSONObject("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"40b200758ad4c17150face37a16baf1b153f69af\",\"vast_config_url\":\"http://qa-get.truex.com/40b200758ad4c17150face37a16baf1b153f69af/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=\"}\n");
-            mAdRenderer = new TruexAdRenderer(this);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.AD_STARTED, this.adStarted);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.AD_COMPLETED, this.adCompleted);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.AD_ERROR, this.adError);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.NO_ADS_AVAILABLE, this.noAds);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.AD_FREE_POD, this.adFree);
-            mAdRenderer.addEventListener(TruexAdRendererConstants.POPUP_WEBSITE, this.popup);
-            mAdRenderer.init(creativeURL, adParams, TruexAdRendererConstants.MIDROLL);
-            mAdRenderer.start(mViewGroup);
-        } catch (JSONException e) {
-            Log.e(CLASSTAG, "JSON ERROR");
+//        if (mTruexAdManager != null) {
+//            return;
+//        }
+//        ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
+//        mTruexAdManager = new TruexAdManager(this, viewGroup);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mTruexAdManager != null) {
+            mTruexAdManager.onResume();
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mAdRenderer.pause();
+        if (mTruexAdManager != null) {
+            mTruexAdManager.onPause();
+        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mAdRenderer.resume();
+    private void setupExoPlayer() {
+        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        DefaultTrackSelector trackSelector = new DefaultTrackSelector(trackSelectionFactory);
+        SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+
+        mPlayerView = (SimpleExoPlayerView) this.findViewById(R.id.player_view);
+        mPlayerView.setPlayer(player);
+
+        player.addListener(new PlayerEventListener(mPlayerView, this, this));
     }
 
-    private IEventHandler adStarted = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            Log.d(CLASSTAG, "adStarted");
-        }
-    };
+    private void setupFakeStream() {
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
+                Util.getUserAgent(this, "Sheppard"), null);
 
-    private IEventHandler adCompleted = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            Log.d(CLASSTAG, "adCompleted");
-        }
-    };
+        Uri uri = Uri.parse("https://media.truex.com/video_assets/2018-03-16/cce7a081-f9eb-4c14-aef2-1f773b4005d0_large.mp4");
+        MediaSource source = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        mPlayerView.getPlayer().prepare(source);
+        mPlayerView.getPlayer().setPlayWhenReady(true);
+    }
 
-    private IEventHandler adError = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            Log.d(CLASSTAG, "adError");
+    public void onPlayerDidStart() {
+        if (mPlayerView.getPlayer() == null) {
+            return;
         }
-    };
+        // Pause the video
+        mPlayerView.getPlayer().setPlayWhenReady(false);
+        mPlayerView.setVisibility(View.GONE);
 
-    private IEventHandler noAds = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            Log.d(CLASSTAG, "noAds");
-        }
-    };
+        // Start the ad
+        ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
+        mTruexAdManager = new TruexAdManager(this, viewGroup, this);
+    }
 
-    private IEventHandler popup = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            String url = (String) data.get("url");
-            Log.d(CLASSTAG, "popup");
-            Log.d(CLASSTAG, "url: " + url);
-        }
-    };
+    public void onPlayerDidResume() {
+        // Do nothing
+    }
 
-    private IEventHandler adFree = new IEventHandler() {
-        @Override
-        public void handleEvent(Map<String, ?> data) {
-            Log.d(CLASSTAG, "adFree");
+    public void onPlayerDidPause() {
+        // Do nothing
+    }
+
+    public void resumeStream() {
+        if (mPlayerView.getPlayer() == null) {
+            return;
         }
-    };
+        mPlayerView.setVisibility(View.VISIBLE);
+        mPlayerView.getPlayer().setPlayWhenReady(true);
+
+        onPlayerDidResume();
+    }
+
+    public void cancelStream() {
+        if (mPlayerView.getPlayer() == null) {
+            return;
+        }
+        SimpleExoPlayer player = mPlayerView.getPlayer();
+        mPlayerView.setPlayer(null);
+        player.release();
+    }
 }
