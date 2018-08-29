@@ -3,6 +3,7 @@ package com.truex.sheppard;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -28,7 +29,10 @@ import com.truex.sheppard.player.PlayerEventListener;
 
 public class MainActivity extends AppCompatActivity implements PlaybackStateListener, PlaybackHandler {
 
-    private static final String CLASSTAG = "Sheppard";
+    private static final String CLASSTAG = "MainActivity";
+    private static final String APP_NAME = "Sheppard";
+    private static final String FAKE_STREAM_URL = "http://media.truex.com/video_assets/2018-03-16/cce7a081-f9eb-4c14-aef2-1f773b4005d0_large.mp4";
+    private ViewGroup mViewGroup;
     private SimpleExoPlayerView mPlayerView;
     private TruexAdManager mTruexAdManager;
 
@@ -38,21 +42,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (mPlayerView == null) {
-            setupExoPlayer();
-            setupFakeStream();
-        }
-
-//        if (mTruexAdManager != null) {
-//            return;
-//        }
-//        ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
-//        mTruexAdManager = new TruexAdManager(this, viewGroup);
+        setupExoPlayer();
+        setupFakeStream();
     }
 
     @Override
@@ -80,51 +72,57 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         mPlayerView = (SimpleExoPlayerView) this.findViewById(R.id.player_view);
         mPlayerView.setPlayer(player);
 
-        player.addListener(new PlayerEventListener(mPlayerView, this, this));
+        player.addListener(new PlayerEventListener(this, this));
     }
 
     private void setupFakeStream() {
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
-                Util.getUserAgent(this, "Sheppard"), null);
+        String userAgent = Util.getUserAgent(this, APP_NAME);
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this, userAgent, null);
 
-        Uri uri = Uri.parse("https://media.truex.com/video_assets/2018-03-16/cce7a081-f9eb-4c14-aef2-1f773b4005d0_large.mp4");
+        Uri uri = Uri.parse(FAKE_STREAM_URL);
         MediaSource source = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
         mPlayerView.getPlayer().prepare(source);
         mPlayerView.getPlayer().setPlayWhenReady(true);
     }
 
     public void onPlayerDidStart() {
+        Log.d(CLASSTAG, "onPlayerDidStart");
         if (mPlayerView.getPlayer() == null) {
             return;
         }
-        // Pause the video
-        mPlayerView.getPlayer().setPlayWhenReady(false);
-        mPlayerView.setVisibility(View.GONE);
 
-        // Start the ad
-        ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
-        mTruexAdManager = new TruexAdManager(this, viewGroup, this);
+        pauseStream();
+
+        mViewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
+        mTruexAdManager = new TruexAdManager(this, this);
+        mTruexAdManager.startAd(mViewGroup);
     }
 
     public void onPlayerDidResume() {
-        // Do nothing
+        Log.d(CLASSTAG, "onPlayerDidResume");
     }
 
     public void onPlayerDidPause() {
-        // Do nothing
+        Log.d(CLASSTAG, "onPlayerDidPause");
     }
 
     public void resumeStream() {
+        Log.d(CLASSTAG, "resumeStream");
         if (mPlayerView.getPlayer() == null) {
             return;
         }
         mPlayerView.setVisibility(View.VISIBLE);
         mPlayerView.getPlayer().setPlayWhenReady(true);
+    }
 
-        onPlayerDidResume();
+    public void pauseStream() {
+        Log.d(CLASSTAG, "pauseStream");
+        mPlayerView.getPlayer().setPlayWhenReady(false);
+        mPlayerView.setVisibility(View.GONE);
     }
 
     public void cancelStream() {
+        Log.d(CLASSTAG, "cancelStream");
         if (mPlayerView.getPlayer() == null) {
             return;
         }

@@ -1,17 +1,18 @@
 package com.truex.sheppard.player;
 
+import android.util.Log;
+
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 
 public class PlayerEventListener extends Player.DefaultEventListener {
-    private SimpleExoPlayerView mPlayerView;
+    private static final String CLASSTAG = "PlayerEventListener";
+
     private PlaybackHandler mPlaybackHandler;
     private boolean mPlaybackDidStart;
     private PlaybackStateListener mListener;
 
-    public PlayerEventListener(SimpleExoPlayerView playerView, PlaybackHandler playbackHandler, PlaybackStateListener listener) {
-       mPlayerView = playerView;
+    public PlayerEventListener(PlaybackHandler playbackHandler, PlaybackStateListener listener) {
        mPlaybackHandler = playbackHandler;
        mPlaybackDidStart = false;
        mListener = listener;
@@ -19,6 +20,7 @@ public class PlayerEventListener extends Player.DefaultEventListener {
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
+        Log.d(CLASSTAG, "onPlayerError");
         mPlaybackHandler.cancelStream();
     }
 
