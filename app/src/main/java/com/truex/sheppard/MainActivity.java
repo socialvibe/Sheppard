@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     @Override
     protected void onResume() {
         super.onResume();
+
         if (mTruexAdManager != null) {
             mTruexAdManager.onResume();
         }
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     @Override
     protected void onPause() {
         super.onPause();
+
         if (mTruexAdManager != null) {
             mTruexAdManager.onPause();
         }
