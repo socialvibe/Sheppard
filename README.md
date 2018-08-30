@@ -12,8 +12,7 @@ This is an Android TV and Fire TV application exposing direct calls into `TruexA
 
 ### Install Steps
 
-* Clone the `master` branch of the `TruexAdRenderer-Android` and `Sheppard` repos.
-    * `git clone https://github.com/socialvibe/TruexAdRenderer-Android.git`
+* Clone the `master` branch of the `Sheppard` repository
     * `git clone https://github.com/socialvibe/Sheppard.git`
 
 * Open Sheppard with Android Studio
