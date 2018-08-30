@@ -6,7 +6,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 
 public class PlayerEventListener extends Player.DefaultEventListener {
-    private static final String CLASSTAG = "PlayerEventListener";
+    private static final String CLASSTAG = PlayerEventListener.class.getSimpleName();
 
     private PlaybackHandler mPlaybackHandler;
     private boolean mPlaybackDidStart;

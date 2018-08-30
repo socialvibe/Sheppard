@@ -15,7 +15,7 @@ import org.json.JSONObject;
 import java.util.Map;
 
 public class TruexAdManager {
-    private static final String CLASSTAG = "TruexAdManager";
+    private static final String CLASSTAG = TruexAdManager.class.getSimpleName();
     private boolean mDidReceiveCredit;
     private PlaybackHandler mPlaybackHandler;
     private TruexAdRenderer mTruexAdRenderer;

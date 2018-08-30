@@ -29,8 +29,7 @@ import com.truex.sheppard.player.PlayerEventListener;
 
 public class MainActivity extends AppCompatActivity implements PlaybackStateListener, PlaybackHandler {
 
-    private static final String CLASSTAG = "MainActivity";
-    private static final String APP_NAME = "Sheppard";
+    private static final String CLASSTAG = MainActivity.class.getSimpleName();
     private static final String FAKE_STREAM_URL = "http://media.truex.com/video_assets/2018-03-16/cce7a081-f9eb-4c14-aef2-1f773b4005d0_large.mp4";
     private ViewGroup mViewGroup;
     private SimpleExoPlayerView mPlayerView;
@@ -78,7 +77,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     }
 
     private void setupFakeStream() {
-        String userAgent = Util.getUserAgent(this, APP_NAME);
+        String applicationName = getApplicationInfo().loadLabel(getPackageManager()).toString();
+        String userAgent = Util.getUserAgent(this, applicationName);
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this, userAgent, null);
 
         Uri uri = Uri.parse(FAKE_STREAM_URL);
@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         if (mPlayerView.getPlayer() == null) {
             return;
         }
-
         pauseStream();
 
         mViewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
@@ -119,6 +118,9 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
     public void pauseStream() {
         Log.d(CLASSTAG, "pauseStream");
+        if (mPlayerView.getPlayer() == null) {
+            return;
+        }
         mPlayerView.getPlayer().setPlayWhenReady(false);
         mPlayerView.setVisibility(View.GONE);
     }
