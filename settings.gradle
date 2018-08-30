@@ -1,3 +1,1 @@
 include ':app'
-include ':TruexAdRenderer'
-project(':TruexAdRenderer').projectDir = new File(settingsDir, '../TruexAdRenderer-Android/TruexAdRenderer')
