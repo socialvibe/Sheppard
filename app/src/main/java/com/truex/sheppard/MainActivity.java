@@ -31,8 +31,11 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
     private static final String CLASSTAG = MainActivity.class.getSimpleName();
     private static final String FAKE_STREAM_URL = "http://media.truex.com/video_assets/2018-03-16/cce7a081-f9eb-4c14-aef2-1f773b4005d0_large.mp4";
-    private ViewGroup mViewGroup;
+
+    // This player view is used to display a fake stream that mimics actual video content
     private SimpleExoPlayerView mPlayerView;
+
+    // We need to hold onto the ad manager so that the ad manager can listen for lifecycle events
     private TruexAdManager mTruexAdManager;
 
     @Override
@@ -42,7 +45,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
 
+        // Set-up the video content player
         setupExoPlayer();
+
+        // Set-up and start a fake video stream
         setupFakeStream();
     }
 
@@ -50,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     protected void onResume() {
         super.onResume();
 
+        // We need to inform the true[X] ad manager that the application has resumed
         if (mTruexAdManager != null) {
             mTruexAdManager.onResume();
         }
@@ -59,8 +66,19 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     protected void onPause() {
         super.onPause();
 
+        // We need to inform the true[X] ad manager that the application has paused
         if (mTruexAdManager != null) {
             mTruexAdManager.onPause();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // We need to inform the true[X] ad manager that the application has stopped
+        if (mTruexAdManager != null) {
+            mTruexAdManager.onStop();
         }
     }
 
@@ -73,40 +91,60 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         mPlayerView = (SimpleExoPlayerView) this.findViewById(R.id.player_view);
         mPlayerView.setPlayer(player);
 
+        // Listen for player events so that we can load the true[X] ad manager when the video stream starts
         player.addListener(new PlayerEventListener(this, this));
     }
 
     private void setupFakeStream() {
+        // Set-up the video content data source
         String applicationName = getApplicationInfo().loadLabel(getPackageManager()).toString();
         String userAgent = Util.getUserAgent(this, applicationName);
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this, userAgent, null);
 
+        // Load and start the fake stream
         Uri uri = Uri.parse(FAKE_STREAM_URL);
         MediaSource source = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
         mPlayerView.getPlayer().prepare(source);
         mPlayerView.getPlayer().setPlayWhenReady(true);
     }
 
+    /**
+     * Called when the player starts displaying the fake content stream
+     * Display the true[X] engagement
+     */
     public void onPlayerDidStart() {
         Log.d(CLASSTAG, "onPlayerDidStart");
         if (mPlayerView.getPlayer() == null) {
             return;
         }
+
+        // Pause the stream and display a true[X] engagement
         pauseStream();
 
-        mViewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
+        // Start the true[X] engagement
+        ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
         mTruexAdManager = new TruexAdManager(this, this);
-        mTruexAdManager.startAd(mViewGroup);
+        mTruexAdManager.startAd(viewGroup);
     }
 
+    /**
+     * Called when the fake content stream is resumed
+     */
     public void onPlayerDidResume() {
         Log.d(CLASSTAG, "onPlayerDidResume");
     }
 
+    /**
+     * Called when the fake content stream is paused
+     */
     public void onPlayerDidPause() {
         Log.d(CLASSTAG, "onPlayerDidPause");
     }
 
+    /**
+     * This method resumes and displays the fake content stream
+     * Note: We call this method whenever a true[X] engagement is completed
+     */
     public void resumeStream() {
         Log.d(CLASSTAG, "resumeStream");
         if (mPlayerView.getPlayer() == null) {
@@ -116,6 +154,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         mPlayerView.getPlayer().setPlayWhenReady(true);
     }
 
+    /**
+     * This method pauses and hides the fake content stream
+     * Note: We call this method whenever a true[X] engagement is completed
+     */
     public void pauseStream() {
         Log.d(CLASSTAG, "pauseStream");
         if (mPlayerView.getPlayer() == null) {
@@ -125,6 +167,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         mPlayerView.setVisibility(View.GONE);
     }
 
+    /**
+     * This method cancels the fake content stream and releases the video content player
+     * Note: We call this method whenever the user cancels an engagement without receiving credit
+     */
     public void cancelStream() {
         Log.d(CLASSTAG, "cancelStream");
         if (mPlayerView.getPlayer() == null) {

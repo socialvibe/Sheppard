@@ -5,6 +5,10 @@ import android.util.Log;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 
+/**
+ * This class simply listens for playback events and informs the listeners when any playback events
+ * occur. Additionally, this class cancels the video stream when and if any playback errors occur.
+ */
 public class PlayerEventListener extends Player.DefaultEventListener {
     private static final String CLASSTAG = PlayerEventListener.class.getSimpleName();
 
