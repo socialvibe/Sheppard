@@ -28,7 +28,7 @@ android {
 
 repositories {
     maven {
-        url "https://raw.github.com/socialvibe/truex-mobile-integrations/android"
+        url "https://raw.github.com/socialvibe/truex-tv-integrations/android"
     }
 }
 
@@ -36,5 +36,5 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:25.3.0'
     implementation 'com.google.android.exoplayer:exoplayer:2.6.1'
-    implementation 'com.truex:TruexAdRenderer:1.0.8'
+    implementation 'com.truex:TruexAdRenderer-tv:1.0.0'
 }

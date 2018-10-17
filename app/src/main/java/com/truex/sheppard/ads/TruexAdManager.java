@@ -54,7 +54,7 @@ public class TruexAdManager {
             // NOTE: The creativeURL, adParameters, and slotType should come from the SSAI provider
             // This is hard coded as an example only
             String creativeURL = "https://media.truex.com/container/2.0/fw_renderers/choicecard.js";
-            JSONObject adParams = new JSONObject("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"40b200758ad4c17150face37a16baf1b153f69af\",\"vast_config_url\":\"http://qa-get.truex.com/40b200758ad4c17150face37a16baf1b153f69af/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=\"}\n");
+            JSONObject adParams = new JSONObject("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"81551ffa2b851abc5372ab9ed9f1f58adabe5203\",\"vast_config_url\":\"http://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=\"}\n");
 
             mTruexAdRenderer.init(creativeURL, adParams, TruexAdRendererConstants.PREROLL);
             mTruexAdRenderer.start(viewGroup);
