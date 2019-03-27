@@ -12,33 +12,35 @@ import com.google.android.exoplayer2.Player;
 public class PlayerEventListener extends Player.DefaultEventListener {
     private static final String CLASSTAG = PlayerEventListener.class.getSimpleName();
 
-    private PlaybackHandler mPlaybackHandler;
-    private boolean mPlaybackDidStart;
-    private PlaybackStateListener mListener;
+    private PlaybackHandler playbackHandler;
+    private PlaybackStateListener listener;
+    private boolean playbackDidStart;
 
     public PlayerEventListener(PlaybackHandler playbackHandler, PlaybackStateListener listener) {
-       mPlaybackHandler = playbackHandler;
-       mPlaybackDidStart = false;
-       mListener = listener;
+        this.playbackHandler = playbackHandler;
+        this.listener = listener;
+        playbackDidStart = false;
     }
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
         Log.d(CLASSTAG, "onPlayerError");
-        mPlaybackHandler.cancelStream();
+        playbackHandler.closeStream();
     }
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        if (playWhenReady && playbackState == Player.STATE_READY) {
-            if (!mPlaybackDidStart) {
-                mListener.onPlayerDidStart();
-                mPlaybackDidStart = true;
+        if (playbackState == Player.STATE_ENDED) {
+            listener.onPlayerDidComplete();
+        } else if (playWhenReady && playbackState == Player.STATE_READY) {
+            if (!playbackDidStart) {
+                listener.onPlayerDidStart();
+                playbackDidStart = true;
             } else {
-                mListener.onPlayerDidResume();
+                listener.onPlayerDidResume();
             }
-        } else if (!playWhenReady) {
-            mListener.onPlayerDidPause();
+        } else if (!playWhenReady && playbackState == Player.STATE_IDLE) {
+            listener.onPlayerDidPause();
         }
     }
 }

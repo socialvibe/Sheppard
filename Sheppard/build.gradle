@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     defaultConfig {
         applicationId "com.truex.sheppard"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
-        versionName "1.0"
+        versionName "2.0"
     }
     buildTypes {
         release {
@@ -24,6 +24,10 @@ android {
             dimension "platform"
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 repositories {
@@ -33,8 +37,8 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:25.3.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.google.android.exoplayer:exoplayer:2.6.1'
-    implementation 'com.truex:TruexAdRenderer-tv:1.0.0'
+    implementation 'com.truex:TruexAdRenderer-tv:2.0.0'
 }
