@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 30
     defaultConfig {
         applicationId "com.truex.sheppard"
-        minSdkVersion 21
-        targetSdkVersion 26
+        minSdkVersion 25
+        targetSdkVersion 30
         versionCode 1
         versionName "2.0"
     }
@@ -32,13 +32,14 @@ android {
 
 repositories {
     maven {
-        url "https://raw.github.com/socialvibe/truex-tv-integrations/android"
+        url "https://ctv.truex.com/android/maven"
     }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.exoplayer:exoplayer:2.6.1'
-    implementation 'com.truex:TruexAdRenderer-tv:2.1.0'
+    // True[x] Ad Renderer (TAR) Dependency
+    implementation 'com.truex:TruexAdRenderer-tv:2.1.2'
 }
