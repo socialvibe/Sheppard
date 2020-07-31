@@ -10,19 +10,18 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.truex.sheppard.ads.TruexAdManager;
 import com.truex.sheppard.player.DisplayMode;
 import com.truex.sheppard.player.PlaybackHandler;
@@ -37,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     private static final String AD_URL_THREE = "http://media.truex.com/file_assets/2019-01-30/742eb926-6ec0-48b4-b1e6-093cee334dd1.mp4";
 
     // This player view is used to display a fake stream that mimics actual video content
-    private SimpleExoPlayerView playerView;
+    private PlayerView playerView;
 
     // The data-source factory is used to build media-sources
     private DataSource.Factory dataSourceFactory;
@@ -176,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         if (playerView.getPlayer() == null) {
             return;
         }
-        SimpleExoPlayer player = playerView.getPlayer();
+        Player player = playerView.getPlayer();
         playerView.setPlayer(null);
         player.release();
     }
@@ -202,12 +201,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
         for(int i = 0; i < ads.length; i++) {
             Uri uri = Uri.parse(adUrls[i]);
-            MediaSource source = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
             ads[i] = source;
         }
 
         MediaSource adPod = new ConcatenatingMediaSource(ads);
-        playerView.getPlayer().prepare(adPod);
+        ((SimpleExoPlayer)playerView.getPlayer()).prepare(adPod);
         playerView.getPlayer().setPlayWhenReady(true);
         playerView.setVisibility(View.VISIBLE);
     }
@@ -238,14 +237,13 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         displayMode = DisplayMode.CONTENT_STREAM;
 
         Uri uri = Uri.parse(CONTENT_STREAM_URL);
-        MediaSource source = new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
-        playerView.getPlayer().prepare(source);
+        MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        ((SimpleExoPlayer)playerView.getPlayer()).prepare(source);
         playerView.getPlayer().setPlayWhenReady(true);
     }
 
     private void setupExoPlayer() {
-        BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
         DefaultTrackSelector trackSelector = new DefaultTrackSelector(trackSelectionFactory);
         SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
 

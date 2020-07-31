@@ -39,7 +39,7 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.exoplayer:exoplayer:2.6.1'
+    implementation 'com.google.android.exoplayer:exoplayer:2.10.5'
     // True[x] Ad Renderer (TAR) Dependency
-    implementation 'com.truex:TruexAdRenderer-tv:2.1.2'
+    implementation 'com.truex:TruexAdRenderer-tv:2.1.3'
 }

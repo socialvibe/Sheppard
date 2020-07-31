@@ -54,7 +54,7 @@ public class TruexAdManager {
      */
     public void startAd(ViewGroup viewGroup) {
         try {
-            String json = String.format("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"%s\",\"vast_config_url\":\"%s\"}\n", "d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887", "http://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=");
+            String json = String.format("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"%s\",\"vast_config_url\":\"%s\"}\n", "d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887", "https://get.truex.com/d3bfc4a1c2f31ab987f2725a5ed03c9ae5837887/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=");
             JSONObject adParams = new JSONObject(json);
 
             truexAdRenderer.init(adParams, TruexAdRendererConstants.PREROLL);
