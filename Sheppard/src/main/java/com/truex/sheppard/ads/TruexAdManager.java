@@ -104,7 +104,7 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when the ad starts
      */
-    private IEventHandler adStarted = (Map<String, ?> data) -> {
+    private IEventHandler adStarted = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adStarted");
     };
 
@@ -112,7 +112,7 @@ public class TruexAdManager {
        Note: This event is triggered when the engagement is completed,
        either by the completion of the engagement or the user exiting the engagement
      */
-    private IEventHandler adCompleted = (Map<String, ?> data) -> {
+    private IEventHandler adCompleted = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adCompleted");
 
         // We are now done with the engagement
@@ -122,7 +122,7 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when an error is encountered by the true[X] ad renderer
      */
-    private IEventHandler adError = (Map<String, ?> data) -> {
+    private IEventHandler adError = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adError");
 
         // There was an error trying to load the enagement
@@ -133,7 +133,7 @@ public class TruexAdManager {
        Note: This event is triggered if the engagement fails to load,
        as a result of there being no engagements available
      */
-    private IEventHandler noAds = (Map<String, ?> data) -> {
+    private IEventHandler noAds = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "noAds");
 
         // There are no engagements available
@@ -143,7 +143,7 @@ public class TruexAdManager {
     /*
        Note: This event is not currently being used
      */
-    private IEventHandler popup = (Map<String, ?> data) -> {
+    private IEventHandler popup = (String eventName, Map<String, ?> data) -> {
         String url = (String) data.get("url");
         Log.d(CLASSTAG, "popup");
         Log.d(CLASSTAG, "url: " + url);
@@ -154,7 +154,7 @@ public class TruexAdManager {
        could skip over the linear ads here, so that when the ad is complete, all we would need
        to do is resume the stream.
      */
-    private IEventHandler adFree = (Map<String, ?> data) -> {
+    private IEventHandler adFree = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adFree");
         didReceiveCredit = true;
     };
@@ -162,14 +162,14 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when a user cancels an interactive engagement
      */
-    private IEventHandler userCancel = (Map<String, ?> data) -> {
+    private IEventHandler userCancel = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "userCancel");
     };
 
     /*
        Note: This event is triggered when a user opts-in to an interactive engagement
      */
-    private IEventHandler optIn = (Map<String, ?> data) -> {
+    private IEventHandler optIn = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "optIn");
     };
 
@@ -177,7 +177,7 @@ public class TruexAdManager {
        Note: This event is triggered when a user opts-out of an interactive engagement,
        either by time-out, or by choice
      */
-    private IEventHandler optOut = (Map<String, ?> data) -> {
+    private IEventHandler optOut = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "optOut");
     };
 
@@ -185,7 +185,7 @@ public class TruexAdManager {
        Note: This event is triggered when a skip card is being displayed to the user
        This occurs when a user is able to skip ads
      */
-    private IEventHandler skipCardShown = (Map<String, ?> data) -> {
+    private IEventHandler skipCardShown = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "skipCardShown");
     };
 
@@ -193,7 +193,7 @@ public class TruexAdManager {
        Note: This event is triggered when the ad has been fetched
        This event occurs before the following events: AD_STARTED, NO_ADS_AVAILABLE, and AD_ERROR.
      */
-    private IEventHandler adFetchCompleted = (Map<String, ?> data) -> {
+    private IEventHandler adFetchCompleted = (String eventName, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adFetchCompleted");
     };
 }
