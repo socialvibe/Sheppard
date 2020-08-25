@@ -7,11 +7,7 @@ import android.view.ViewGroup;
 import com.truex.adrenderer.IEventEmitter.IEventHandler;
 import com.truex.adrenderer.TruexAdEvent;
 import com.truex.adrenderer.TruexAdRenderer;
-import com.truex.adrenderer.TruexAdRendererConstants;
 import com.truex.sheppard.player.PlaybackHandler;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Map;
 
@@ -52,15 +48,9 @@ public class TruexAdManager {
      * @param viewGroup - the view group in which you would like to display the true[X] engagement
      */
     public void startAd(ViewGroup viewGroup) {
-        try {
-            String json = String.format("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"%s\",\"vast_config_url\":\"%s\"}\n", "81551ffa2b851abc5372ab9ed9f1f58adabe5203", "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=");
-            JSONObject adParams = new JSONObject(json);
-
-            truexAdRenderer.init(adParams, TruexAdRendererConstants.PREROLL);
-            truexAdRenderer.start(viewGroup);
-        } catch (JSONException e) {
-            Log.e(CLASSTAG, "JSON ERROR");
-        }
+        String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
+        truexAdRenderer.init(vastConfigUrl);
+        truexAdRenderer.start(viewGroup);
     }
 
     /**
