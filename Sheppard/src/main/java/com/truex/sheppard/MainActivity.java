@@ -1,13 +1,15 @@
 package com.truex.sheppard;
 
 import android.net.Uri;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -18,10 +20,10 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.ui.PlayerView;
 import com.truex.sheppard.ads.TruexAdManager;
 import com.truex.sheppard.player.DisplayMode;
 import com.truex.sheppard.player.PlaybackHandler;
@@ -226,6 +228,17 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
         truexAdManager = new TruexAdManager(this, this);
         truexAdManager.startAd(viewGroup);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            // For manual invocation.
+            displayInteractiveAd();
+            return true;
+        }
+
+        return super.onKeyUp(keyCode, event);
     }
 
     private void displayContentStream() {

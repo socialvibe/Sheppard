@@ -5,12 +5,9 @@ import android.util.Log;
 import android.view.ViewGroup;
 
 import com.truex.adrenderer.IEventEmitter.IEventHandler;
+import com.truex.adrenderer.TruexAdEvent;
 import com.truex.adrenderer.TruexAdRenderer;
-import com.truex.adrenderer.TruexAdRendererConstants;
 import com.truex.sheppard.player.PlaybackHandler;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.Map;
 
@@ -35,17 +32,15 @@ public class TruexAdManager {
         truexAdRenderer = new TruexAdRenderer(context);
 
         // Set-up the event listeners
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.AD_STARTED, this.adStarted);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.AD_COMPLETED, this.adCompleted);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.AD_ERROR, this.adError);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.NO_ADS_AVAILABLE, this.noAds);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.AD_FREE_POD, this.adFree);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.POPUP_WEBSITE, this.popup);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.USER_CANCEL, this.userCancel);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.OPT_IN, this.optIn);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.OPT_OUT, this.optOut);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.SKIP_CARD_SHOWN, this.skipCardShown);
-        truexAdRenderer.addEventListener(TruexAdRendererConstants.AD_FETCH_COMPLETED, this.adFetchCompleted);
+        truexAdRenderer.addEventListener(TruexAdEvent.AD_STARTED, this.adStarted);
+        truexAdRenderer.addEventListener(TruexAdEvent.AD_COMPLETED, this.adCompleted);
+        truexAdRenderer.addEventListener(TruexAdEvent.AD_ERROR, this.adError);
+        truexAdRenderer.addEventListener(TruexAdEvent.NO_ADS_AVAILABLE, this.noAds);
+        truexAdRenderer.addEventListener(TruexAdEvent.AD_FREE_POD, this.adFree);
+        truexAdRenderer.addEventListener(TruexAdEvent.USER_CANCEL, this.userCancel);
+        truexAdRenderer.addEventListener(TruexAdEvent.OPT_IN, this.optIn);
+        truexAdRenderer.addEventListener(TruexAdEvent.OPT_OUT, this.optOut);
+        truexAdRenderer.addEventListener(TruexAdEvent.SKIP_CARD_SHOWN, this.skipCardShown);
     }
 
     /**
@@ -53,15 +48,9 @@ public class TruexAdManager {
      * @param viewGroup - the view group in which you would like to display the true[X] engagement
      */
     public void startAd(ViewGroup viewGroup) {
-        try {
-            String json = String.format("{\"user_id\":\"3e47e82244f7aa7ac3fa60364a7ede8453f3f9fe\",\"placement_hash\":\"%s\",\"vast_config_url\":\"%s\"}\n", "81551ffa2b851abc5372ab9ed9f1f58adabe5203", "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=");
-            JSONObject adParams = new JSONObject(json);
-
-            truexAdRenderer.init(adParams, TruexAdRendererConstants.PREROLL);
-            truexAdRenderer.start(viewGroup);
-        } catch (JSONException e) {
-            Log.e(CLASSTAG, "JSON ERROR");
-        }
+        String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
+        truexAdRenderer.init(vastConfigUrl);
+        truexAdRenderer.start(viewGroup);
     }
 
     /**
@@ -104,7 +93,7 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when the ad starts
      */
-    private IEventHandler adStarted = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler adStarted = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adStarted");
     };
 
@@ -112,7 +101,7 @@ public class TruexAdManager {
        Note: This event is triggered when the engagement is completed,
        either by the completion of the engagement or the user exiting the engagement
      */
-    private IEventHandler adCompleted = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler adCompleted = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adCompleted");
 
         // We are now done with the engagement
@@ -122,7 +111,7 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when an error is encountered by the true[X] ad renderer
      */
-    private IEventHandler adError = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler adError = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adError");
 
         // There was an error trying to load the enagement
@@ -133,7 +122,7 @@ public class TruexAdManager {
        Note: This event is triggered if the engagement fails to load,
        as a result of there being no engagements available
      */
-    private IEventHandler noAds = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler noAds = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "noAds");
 
         // There are no engagements available
@@ -141,20 +130,11 @@ public class TruexAdManager {
     };
 
     /*
-       Note: This event is not currently being used
-     */
-    private IEventHandler popup = (String eventName, Map<String, ?> data) -> {
-        String url = (String) data.get("url");
-        Log.d(CLASSTAG, "popup");
-        Log.d(CLASSTAG, "url: " + url);
-    };
-
-    /*
        Note: This event is triggered when the viewer has earned their true[ATTENTION] credit. We
        could skip over the linear ads here, so that when the ad is complete, all we would need
        to do is resume the stream.
      */
-    private IEventHandler adFree = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler adFree = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "adFree");
         didReceiveCredit = true;
     };
@@ -162,14 +142,14 @@ public class TruexAdManager {
     /*
        Note: This event is triggered when a user cancels an interactive engagement
      */
-    private IEventHandler userCancel = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler userCancel = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "userCancel");
     };
 
     /*
        Note: This event is triggered when a user opts-in to an interactive engagement
      */
-    private IEventHandler optIn = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler optIn = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "optIn");
     };
 
@@ -177,7 +157,7 @@ public class TruexAdManager {
        Note: This event is triggered when a user opts-out of an interactive engagement,
        either by time-out, or by choice
      */
-    private IEventHandler optOut = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler optOut = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "optOut");
     };
 
@@ -185,15 +165,7 @@ public class TruexAdManager {
        Note: This event is triggered when a skip card is being displayed to the user
        This occurs when a user is able to skip ads
      */
-    private IEventHandler skipCardShown = (String eventName, Map<String, ?> data) -> {
+    private IEventHandler skipCardShown = (TruexAdEvent event, Map<String, ?> data) -> {
         Log.d(CLASSTAG, "skipCardShown");
-    };
-
-    /*
-       Note: This event is triggered when the ad has been fetched
-       This event occurs before the following events: AD_STARTED, NO_ADS_AVAILABLE, and AD_ERROR.
-     */
-    private IEventHandler adFetchCompleted = (String eventName, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "adFetchCompleted");
     };
 }
