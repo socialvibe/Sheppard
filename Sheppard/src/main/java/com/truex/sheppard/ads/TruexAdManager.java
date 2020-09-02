@@ -6,10 +6,12 @@ import android.view.ViewGroup;
 
 import com.truex.adrenderer.IEventEmitter.IEventHandler;
 import com.truex.adrenderer.TruexAdEvent;
+import com.truex.adrenderer.TruexAdOptions;
 import com.truex.adrenderer.TruexAdRenderer;
 import com.truex.sheppard.player.PlaybackHandler;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This class holds a reference to the true[X] ad renderer and handles all of the event handling
@@ -49,7 +51,13 @@ public class TruexAdManager {
      */
     public void startAd(ViewGroup viewGroup) {
         String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
-        truexAdRenderer.init(vastConfigUrl);
+
+        TruexAdOptions options = new TruexAdOptions();
+        options.supportsUserCancelStream = true;
+        //options.userAdvertisingId = "1234"; // for testing.
+        options.fallbackAdvertisingId = UUID.randomUUID().toString();
+
+        truexAdRenderer.init(vastConfigUrl, options);
         truexAdRenderer.start(viewGroup);
     }
 
