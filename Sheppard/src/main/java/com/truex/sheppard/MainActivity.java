@@ -1,5 +1,9 @@
 package com.truex.sheppard;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     private static final String AD_URL_ONE = "http://media.truex.com/file_assets/2019-01-30/eb27eae5-c9da-4a9b-9420-a83c986baa0b.mp4";
     private static final String AD_URL_TWO = "http://media.truex.com/file_assets/2019-01-30/7fe9da33-6b9e-446d-816d-e1aec51a3173.mp4";
     private static final String AD_URL_THREE = "http://media.truex.com/file_assets/2019-01-30/742eb926-6ec0-48b4-b1e6-093cee334dd1.mp4";
+    private static final String INTENT_HDMI = "android.intent.action.HDMI_PLUGGED";
+    private static final String INTENT_NOISY_AUDIO = "android.intent.action.ACTION_AUDIO_BECOMING_NOISY";
 
     // This player view is used to display a fake stream that mimics actual video content
     private PlayerView playerView;
@@ -64,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
         // Start the content stream
         displayContentStream();
+
+        setupIntents();
     }
 
     @Override
@@ -272,4 +280,42 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         String userAgent = Util.getUserAgent(this, applicationName);
         dataSourceFactory = new DefaultDataSourceFactory(this, userAgent, null);
     }
+
+    private void setupIntents() {
+        registerReceiver(hdmiStateChange, new IntentFilter(INTENT_HDMI));
+        registerReceiver(audioWillBecomeNoisy, new IntentFilter(INTENT_NOISY_AUDIO));
+    }
+
+    BroadcastReceiver hdmiStateChange = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(INTENT_HDMI)) {
+                boolean state = intent.getBooleanExtra("state", false);
+                if (state) {
+                    onResume();
+                } else {
+                    onPause();
+                }
+            }
+        }
+    };
+
+    BroadcastReceiver audioWillBecomeNoisy = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(INTENT_NOISY_AUDIO)) {
+                onPause();
+                // here we simply resume playback in 3 seconds
+                new android.os.Handler().postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                onResume();
+                            }
+                        },
+                        3000);
+            }
+        }
+    };
 }
