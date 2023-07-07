@@ -1,10 +1,10 @@
 package com.truex.sheppard.ads;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.view.ViewGroup;
 
-import com.truex.adrenderer.IEventEmitter.IEventHandler;
 import com.truex.adrenderer.TruexAdEvent;
 import com.truex.adrenderer.TruexAdOptions;
 import com.truex.adrenderer.TruexAdRenderer;
@@ -19,11 +19,21 @@ import java.util.UUID;
  * the content when the engagement is complete.
  */
 public class TruexAdManager {
+    public static boolean supportUserCancelStream = true;
+
     private static final String CLASSTAG = TruexAdManager.class.getSimpleName();
 
     private PlaybackHandler playbackHandler;
     private boolean didReceiveCredit;
     private TruexAdRenderer truexAdRenderer;
+
+    private ViewGroup viewGroup;
+
+    // Default to showing the ad immediately while it is being fetched.
+    // The HTML5 TAR shows a black screen with a spinner in this case, which is appropriate
+    // for most publisher user situations.
+    private static final boolean showAdImmediately = true;
+    private static final boolean showAdAfterLoad = !showAdImmediately;
 
     public TruexAdManager(Context context, PlaybackHandler playbackHandler) {
         this.playbackHandler = playbackHandler;
@@ -34,15 +44,11 @@ public class TruexAdManager {
         truexAdRenderer = new TruexAdRenderer(context);
 
         // Set-up the event listeners
-        truexAdRenderer.addEventListener(TruexAdEvent.AD_STARTED, this.adStarted);
-        truexAdRenderer.addEventListener(TruexAdEvent.AD_COMPLETED, this.adCompleted);
-        truexAdRenderer.addEventListener(TruexAdEvent.AD_ERROR, this.adError);
-        truexAdRenderer.addEventListener(TruexAdEvent.NO_ADS_AVAILABLE, this.noAds);
-        truexAdRenderer.addEventListener(TruexAdEvent.AD_FREE_POD, this.adFree);
-        truexAdRenderer.addEventListener(TruexAdEvent.USER_CANCEL, this.userCancel);
-        truexAdRenderer.addEventListener(TruexAdEvent.OPT_IN, this.optIn);
-        truexAdRenderer.addEventListener(TruexAdEvent.OPT_OUT, this.optOut);
-        truexAdRenderer.addEventListener(TruexAdEvent.SKIP_CARD_SHOWN, this.skipCardShown);
+        truexAdRenderer.addEventListener(null, this::adEventHandler); // listen to all events.
+        if (supportUserCancelStream) {
+            // We use an explicit listener to allow the tar to know user cancel stream is supported.
+            truexAdRenderer.addEventListener(TruexAdEvent.USER_CANCEL_STREAM, this::onCancelStream);
+        }
     }
 
     /**
@@ -58,7 +64,9 @@ public class TruexAdManager {
         options.fallbackAdvertisingId = UUID.randomUUID().toString();
 
         truexAdRenderer.init(vastConfigUrl, options);
-        truexAdRenderer.start(viewGroup);
+        if (showAdImmediately) {
+            truexAdRenderer.start(viewGroup);
+        }
     }
 
     /**
@@ -83,10 +91,57 @@ public class TruexAdManager {
         truexAdRenderer.stop();
     }
 
+    private void adEventHandler(TruexAdEvent event, Map<String, ?> data) {
+        Log.i(CLASSTAG, "ad event: " + event);
+        switch (event) {
+            case AD_STARTED:
+                // The ad has started.
+                break;
+
+            case SKIP_CARD_SHOWN:
+                // The skip card was shown instead of an ad.
+                break;
+
+            case AD_DISPLAYED:
+                if (showAdAfterLoad) {
+                    // Ad is ready to be shown.
+                    Handler handler = new Handler();
+                    handler.post(() -> truexAdRenderer.start(viewGroup));
+                }
+                break;
+
+            case USER_CANCEL_STREAM:
+                // User backed out of the choice card, which means backing out of the entire video.
+                // The user would like to cancel the stream
+                // Handled below in onCancelStream()
+                return;
+
+            case AD_ERROR: // An ad error has occurred, forcing its closure
+            case AD_COMPLETED: // The ad has completed.
+            case NO_ADS_AVAILABLE: // No ads are available, resume playback of fallback ads.
+                resumeVideo();
+                break;
+
+            case AD_FREE_POD:
+                // the user did sufficient interaction for an ad credit
+                didReceiveCredit = true;
+                break;
+
+            case OPT_IN:
+                // User started the engagement experience
+            case OPT_OUT:
+                // User cancelled out of the choice card, either explicitly, or implicitly via a timeout.
+            case USER_CANCEL:
+                // User backed out of the ad, now showing the choice card again.
+            default:
+                break;
+        }
+    }
+
     /**
      * This method should be called once the true[X] ad manager is done
      */
-    private void onCompletion() {
+    private void resumeVideo() {
         if (didReceiveCredit) {
             // The user received true[ATTENTION] credit
             // Resume the content stream (and skip any linear ads)
@@ -98,82 +153,16 @@ public class TruexAdManager {
         }
     }
 
-    /*
-       Note: This event is triggered when the ad starts
+    /**
+     * This method should be called if the user has opted to cancel the current stream
      */
-    private IEventHandler adStarted = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "adStarted");
-    };
+    private void onCancelStream(TruexAdEvent event, Map<String, ?> data) {
+        if (didReceiveCredit) {
+            Log.i(CLASSTAG, "Cancelling stream with credit");
+        } else {
+            Log.i(CLASSTAG, "Cancelling stream without credit");
+        }
+        playbackHandler.cancelStream();
+    }
 
-    /*
-       Note: This event is triggered when the engagement is completed,
-       either by the completion of the engagement or the user exiting the engagement
-     */
-    private IEventHandler adCompleted = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "adCompleted");
-
-        // We are now done with the engagement
-        onCompletion();
-    };
-
-    /*
-       Note: This event is triggered when an error is encountered by the true[X] ad renderer
-     */
-    private IEventHandler adError = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "adError");
-
-        // There was an error trying to load the enagement
-        onCompletion();
-    };
-
-    /*
-       Note: This event is triggered if the engagement fails to load,
-       as a result of there being no engagements available
-     */
-    private IEventHandler noAds = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "noAds");
-
-        // There are no engagements available
-        onCompletion();
-    };
-
-    /*
-       Note: This event is triggered when the viewer has earned their true[ATTENTION] credit. We
-       could skip over the linear ads here, so that when the ad is complete, all we would need
-       to do is resume the stream.
-     */
-    private IEventHandler adFree = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "adFree");
-        didReceiveCredit = true;
-    };
-
-    /*
-       Note: This event is triggered when a user cancels an interactive engagement
-     */
-    private IEventHandler userCancel = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "userCancel");
-    };
-
-    /*
-       Note: This event is triggered when a user opts-in to an interactive engagement
-     */
-    private IEventHandler optIn = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "optIn");
-    };
-
-    /*
-       Note: This event is triggered when a user opts-out of an interactive engagement,
-       either by time-out, or by choice
-     */
-    private IEventHandler optOut = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "optOut");
-    };
-
-    /*
-       Note: This event is triggered when a skip card is being displayed to the user
-       This occurs when a user is able to skip ads
-     */
-    private IEventHandler skipCardShown = (TruexAdEvent event, Map<String, ?> data) -> {
-        Log.d(CLASSTAG, "skipCardShown");
-    };
 }

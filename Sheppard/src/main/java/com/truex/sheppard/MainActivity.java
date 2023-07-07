@@ -15,15 +15,12 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -78,30 +75,30 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     protected void onResume() {
         super.onResume();
 
-            // We need to inform the true[X] ad manager that the application has resumed
-            if (truexAdManager != null) {
-                truexAdManager.onResume();
-            }
+        // We need to inform the true[X] ad manager that the application has resumed
+        if (truexAdManager != null) {
+            truexAdManager.onResume();
+        }
 
-            // Resume video playback
-            if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
-                playerView.getPlayer().setPlayWhenReady(true);
-            }
+        // Resume video playback
+        if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
+            playerView.getPlayer().setPlayWhenReady(true);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-            // We need to inform the true[X] ad manager that the application has paused
-            if (truexAdManager != null) {
-                truexAdManager.onPause();
-            }
+        // We need to inform the true[X] ad manager that the application has paused
+        if (truexAdManager != null) {
+            truexAdManager.onPause();
+        }
 
-            // Pause video playback
-            if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
-                playerView.getPlayer().setPlayWhenReady(false);
-            }
+        // Pause video playback
+        if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
+            playerView.getPlayer().setPlayWhenReady(false);
+        }
     }
 
     @Override
@@ -155,11 +152,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     @Override
     public void resumeStream() {
         Log.d(CLASSTAG, "resumeStream");
-        if (playerView.getPlayer() == null) {
-            return;
-        }
+        Player player = playerView.getPlayer();
+        if (player == null) return;
         playerView.setVisibility(View.VISIBLE);
-        playerView.getPlayer().setPlayWhenReady(true);
+        player.setPlayWhenReady(true);
+        player.prepare();
+        player.play();
     }
 
     /**
@@ -168,10 +166,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
      */
     public void pauseStream() {
         Log.d(CLASSTAG, "pauseStream");
-        if (playerView.getPlayer() == null) {
-            return;
-        }
-        playerView.getPlayer().setPlayWhenReady(false);
+        Player player = playerView.getPlayer();
+        if (player == null) return;
+        player.setPlayWhenReady(false);
+        player.pause();
         playerView.setVisibility(View.GONE);
     }
 
@@ -211,13 +209,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
         for(int i = 0; i < ads.length; i++) {
             Uri uri = Uri.parse(adUrls[i]);
-            MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri));
             ads[i] = source;
         }
 
         MediaSource adPod = new ConcatenatingMediaSource(ads);
-        ((SimpleExoPlayer)playerView.getPlayer()).prepare(adPod);
-        playerView.getPlayer().setPlayWhenReady(true);
+        ExoPlayer player = (ExoPlayer)playerView.getPlayer();
+        player.setPlayWhenReady(true);
+        player.setMediaSource(adPod);
+        player.prepare();
         playerView.setVisibility(View.VISIBLE);
     }
 
@@ -258,15 +258,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         displayMode = DisplayMode.CONTENT_STREAM;
 
         Uri uri = Uri.parse(CONTENT_STREAM_URL);
-        MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
-        ((SimpleExoPlayer)playerView.getPlayer()).prepare(source);
-        playerView.getPlayer().setPlayWhenReady(true);
+        MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri));
+        ExoPlayer player = (ExoPlayer) playerView.getPlayer();
+        player.setPlayWhenReady(true);
+        player.setMediaSource(source);
+        player.prepare();
     }
 
     private void setupExoPlayer() {
-        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(trackSelectionFactory);
-        SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+        ExoPlayer player = new ExoPlayer.Builder(getApplicationContext()).build();
 
         playerView = findViewById(R.id.player_view);
         playerView.setPlayer(player);
