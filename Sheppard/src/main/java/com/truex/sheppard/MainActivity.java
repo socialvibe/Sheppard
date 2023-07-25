@@ -66,10 +66,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         // Set-up the data-source factory
         setupDataSourceFactory();
 
+        setupIntents(); // now we can be sensitive to HDMI cable changes
+
         // Start the content stream
         displayContentStream();
-
-        setupIntents();
     }
 
     @Override
@@ -292,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         playerView.setPlayer(player);
 
         // Listen for player events so that we can load the true[X] ad manager when the video stream starts
-        player.addListener(new PlayerEventListener(this, this));
+        player.addListener(new PlayerEventListener(this));
     }
 
     private void setupDataSourceFactory() {

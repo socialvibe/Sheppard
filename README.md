@@ -2,10 +2,12 @@
 
 ## Reference app for Android TV and Fire TV TAR (TruexAdRenderer) integration
 
-This is an Android TV and Fire TV application exposing direct calls into `TruexAdRenderer` instances, enabling functional testing as well as prototyping. 
-The application is set up with a simple activity and the calls in the `MainActivity` should be self-explanatory.
+This is an Android TV and Fire TV application exposing direct calls into `TruexAdRenderer` instances, 
+enabling functional testing as well as prototyping. The application is set up with a simple activity 
+and the calls in the `MainActivity` should be self-explanatory.
 
-The Truex ad will display once playback reaches the 3:29 mark, at manually at any time via the Menu key on the remote.
+The Truex ad will display once playback starts, simulating a preroll. It can also be invoked manually 
+at any time via the Menu key on the remote, or the M key in the emulator.
 
 ## Setup
 

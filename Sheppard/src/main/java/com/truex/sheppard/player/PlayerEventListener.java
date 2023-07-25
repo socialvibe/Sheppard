@@ -12,15 +12,11 @@ import com.google.android.exoplayer2.Player;
 public class PlayerEventListener implements Player.Listener {
     private static final String CLASSTAG = PlayerEventListener.class.getSimpleName();
 
-    private PlaybackHandler playbackHandler;
     private PlaybackStateListener listener;
     private boolean playbackDidStart;
-    private boolean playWhenReady;
 
-    public PlayerEventListener(PlaybackHandler playbackHandler, PlaybackStateListener listener) {
-        this.playbackHandler = playbackHandler;
+    public PlayerEventListener(PlaybackStateListener listener) {
         this.listener = listener;
-        playbackDidStart = false;
     }
 
     @Override
@@ -33,23 +29,24 @@ public class PlayerEventListener implements Player.Listener {
     }
 
     @Override
-    public void onPlayWhenReadyChanged(boolean playWhenReady, int reason) {
-        this.playWhenReady = playWhenReady;
+    public void onIsPlayingChanged(boolean isPlaying) {
+        if (isPlaying) {
+            if (!playbackDidStart) {
+                playbackDidStart = true;
+                listener.onPlayerDidStart();
+            } else {
+                // We have already started, so this is a resume from a pause.
+                listener.onPlayerDidResume();
+            }
+        } else if (playbackDidStart) {
+            listener.onPlayerDidPause();
+        }
     }
 
     @Override
     public void onPlaybackStateChanged(int playbackState) {
         if (playbackState == Player.STATE_ENDED) {
             listener.onPlayerDidComplete();
-        } else if (playWhenReady && playbackState == Player.STATE_READY) {
-            if (!playbackDidStart) {
-                playbackDidStart = true;
-                listener.onPlayerDidStart();
-            } else {
-                listener.onPlayerDidResume();
-            }
-        } else if (playbackDidStart && playbackState == Player.STATE_IDLE) {
-            listener.onPlayerDidPause();
         }
     }
 }
