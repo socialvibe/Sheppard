@@ -55,8 +55,8 @@ public class TruexAdManager {
      * Start displaying the true[X] engagement
      * @param viewGroup - the view group in which you would like to display the true[X] engagement
      */
-    public void startAd(ViewGroup viewGroup) {
-        String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
+    public void startAd(ViewGroup viewGroup, String vastConfigUrl) {
+        this.viewGroup = viewGroup;
 
         TruexAdOptions options = new TruexAdOptions();
         options.supportsUserCancelStream = true;

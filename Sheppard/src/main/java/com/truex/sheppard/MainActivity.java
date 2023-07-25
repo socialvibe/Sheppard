@@ -14,6 +14,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
@@ -189,6 +190,21 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     }
 
     /**
+     * This method closes the stream and then returns to the tag selection view
+     */
+    public void cancelStream() {
+        // Close the stream
+        closeStream();
+
+        // Return to the previous fragment
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm != null && fm.getBackStackEntryCount() > 0) {
+            fm.popBackStack();
+        }
+    }
+
+
+    /**
      * This method cancels the content stream and begins playing a linear ad
      * Note: We call this method whenever the user cancels an engagement without receiving credit
      */
@@ -235,7 +251,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         // Start the true[X] engagement
         ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
         truexAdManager = new TruexAdManager(this, this);
-        truexAdManager.startAd(viewGroup);
+
+        // Normally the truex vast config url would come from the Ad SDK's VAST data for the ad.
+        String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
+        truexAdManager.startAd(viewGroup, vastConfigUrl);
     }
 
     @Override
