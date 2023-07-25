@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
      * Display the true[X] engagement
      */
     public void onPlayerDidStart() {
+        Log.i(CLASSTAG, "onPlayerDidStart");
         displayInteractiveAd();
     }
 
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU) {
+        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_M) {
             // For manual invocation.
             displayInteractiveAd();
             return true;
