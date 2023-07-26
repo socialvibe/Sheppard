@@ -14,16 +14,14 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
-import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -68,40 +66,40 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         // Set-up the data-source factory
         setupDataSourceFactory();
 
+        setupIntents(); // now we can be sensitive to HDMI cable changes
+
         // Start the content stream
         displayContentStream();
-
-        setupIntents();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-            // We need to inform the true[X] ad manager that the application has resumed
-            if (truexAdManager != null) {
-                truexAdManager.onResume();
-            }
+        // We need to inform the true[X] ad manager that the application has resumed
+        if (truexAdManager != null) {
+            truexAdManager.onResume();
+        }
 
-            // Resume video playback
-            if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
-                playerView.getPlayer().setPlayWhenReady(true);
-            }
+        // Resume video playback
+        if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
+            playerView.getPlayer().setPlayWhenReady(true);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-            // We need to inform the true[X] ad manager that the application has paused
-            if (truexAdManager != null) {
-                truexAdManager.onPause();
-            }
+        // We need to inform the true[X] ad manager that the application has paused
+        if (truexAdManager != null) {
+            truexAdManager.onPause();
+        }
 
-            // Pause video playback
-            if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
-                playerView.getPlayer().setPlayWhenReady(false);
-            }
+        // Pause video playback
+        if (playerView.getPlayer() != null && displayMode != DisplayMode.INTERACTIVE_AD) {
+            playerView.getPlayer().setPlayWhenReady(false);
+        }
     }
 
     @Override
@@ -122,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
      * Display the true[X] engagement
      */
     public void onPlayerDidStart() {
+        Log.i(CLASSTAG, "onPlayerDidStart");
         displayInteractiveAd();
     }
 
@@ -155,11 +154,12 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
     @Override
     public void resumeStream() {
         Log.d(CLASSTAG, "resumeStream");
-        if (playerView.getPlayer() == null) {
-            return;
-        }
+        Player player = playerView.getPlayer();
+        if (player == null) return;
         playerView.setVisibility(View.VISIBLE);
-        playerView.getPlayer().setPlayWhenReady(true);
+        player.setPlayWhenReady(true);
+        player.prepare();
+        player.play();
     }
 
     /**
@@ -168,10 +168,10 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
      */
     public void pauseStream() {
         Log.d(CLASSTAG, "pauseStream");
-        if (playerView.getPlayer() == null) {
-            return;
-        }
-        playerView.getPlayer().setPlayWhenReady(false);
+        Player player = playerView.getPlayer();
+        if (player == null) return;
+        player.setPlayWhenReady(false);
+        player.pause();
         playerView.setVisibility(View.GONE);
     }
 
@@ -189,6 +189,21 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         playerView.setPlayer(null);
         player.release();
     }
+
+    /**
+     * This method closes the stream and then returns to the tag selection view
+     */
+    public void cancelStream() {
+        // Close the stream
+        closeStream();
+
+        // Return to the previous fragment
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm != null && fm.getBackStackEntryCount() > 0) {
+            fm.popBackStack();
+        }
+    }
+
 
     /**
      * This method cancels the content stream and begins playing a linear ad
@@ -211,13 +226,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
 
         for(int i = 0; i < ads.length; i++) {
             Uri uri = Uri.parse(adUrls[i]);
-            MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+            MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri));
             ads[i] = source;
         }
 
         MediaSource adPod = new ConcatenatingMediaSource(ads);
-        ((SimpleExoPlayer)playerView.getPlayer()).prepare(adPod);
-        playerView.getPlayer().setPlayWhenReady(true);
+        ExoPlayer player = (ExoPlayer)playerView.getPlayer();
+        player.setPlayWhenReady(true);
+        player.setMediaSource(adPod);
+        player.prepare();
         playerView.setVisibility(View.VISIBLE);
     }
 
@@ -235,12 +252,15 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         // Start the true[X] engagement
         ViewGroup viewGroup = (ViewGroup) this.findViewById(R.id.activity_main);
         truexAdManager = new TruexAdManager(this, this);
-        truexAdManager.startAd(viewGroup);
+
+        // Normally the truex vast config url would come from the Ad SDK's VAST data for the ad.
+        String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
+        truexAdManager.startAd(viewGroup, vastConfigUrl);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU) {
+        if (keyCode == KeyEvent.KEYCODE_MENU || keyCode == KeyEvent.KEYCODE_M) {
             // For manual invocation.
             displayInteractiveAd();
             return true;
@@ -258,21 +278,21 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         displayMode = DisplayMode.CONTENT_STREAM;
 
         Uri uri = Uri.parse(CONTENT_STREAM_URL);
-        MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
-        ((SimpleExoPlayer)playerView.getPlayer()).prepare(source);
-        playerView.getPlayer().setPlayWhenReady(true);
+        MediaSource source = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(uri));
+        ExoPlayer player = (ExoPlayer) playerView.getPlayer();
+        player.setPlayWhenReady(true);
+        player.setMediaSource(source);
+        player.prepare();
     }
 
     private void setupExoPlayer() {
-        TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(trackSelectionFactory);
-        SimpleExoPlayer player = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
+        ExoPlayer player = new ExoPlayer.Builder(getApplicationContext()).build();
 
         playerView = findViewById(R.id.player_view);
         playerView.setPlayer(player);
 
         // Listen for player events so that we can load the true[X] ad manager when the video stream starts
-        player.addListener(new PlayerEventListener(this, this));
+        player.addListener(new PlayerEventListener(this));
     }
 
     private void setupDataSourceFactory() {
