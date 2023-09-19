@@ -257,8 +257,8 @@ public class MainActivity extends AppCompatActivity implements PlaybackStateList
         // References the Hilton and Kung Fu Panda ads, not very typical.
         //String vastConfigUrl = "https://qa-get.truex.com/81551ffa2b851abc5372ab9ed9f1f58adabe5203/vast/config?asnw=&flag=%2Bamcb%2Bemcr%2Bslcb%2Bvicb%2Baeti-exvt&fw_key_values=&metr=0&prof=g_as3_truex&ptgt=a&pvrn=&resp=vmap1&slid=fw_truex&ssnw=&vdur=&vprn=";
 
-        // This refers to a common test ad: https://ee.truex.com/ads/21693
-        // via an unrestricted, non-expiring, no-geo-blocked placement and test campaign.
+        // This refers to an unrestricted, non-expiring, no-geo-blocked placement and test campaign.
+        // with a more modern test ad: https://ee.truex.com/ads/27287
         // placement: https://ee.truex.com/admin/placements/1078
         // campaign: https://ee.truex.com/campaigns/ab0f12462
         String vastConfigUrl = "https://get.truex.com/88ac681ba8d0458e413dc22374194ab9f60b6664/vast/config?dimension_5=PI-2449-ctv-ad";
