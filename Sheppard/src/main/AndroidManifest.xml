@@ -9,6 +9,8 @@
         android:name="android.software.leanback"
         android:required="true" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="false"
